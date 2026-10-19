@@ -6,7 +6,7 @@ package com.bolt.calltracker
  * TEAM = teammate names separated by commas, for example "Ravi,Anu" (leave empty to type the name)
  */
 object Config {
-    const val URL = ""
+    const val URL = "https://script.google.com/macros/s/AKfycbzL-W2LNUjRP9gzECHwGpQULgUp5HUHVBpr_QkVguU1TU3yzeTBEUCaZ5wpkJPYWNmwmg/exec"
     const val SECRET = "236690c80a7896f6"
     const val TEAM = ""
 }
