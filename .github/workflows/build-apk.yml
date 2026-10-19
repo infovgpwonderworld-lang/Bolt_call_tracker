@@ -7,18 +7,23 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
       - id: java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
 
-      - id: android
-        uses: android-actions/setup-android@v3
+      # The Android SDK is already installed on this machine image.
+      - id: sdk
+        name: Accept Android licenses
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME" || true
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
       - id: gradle
         uses: gradle/actions/setup-gradle@v4
@@ -40,7 +45,7 @@ jobs:
       - name: Show failure reason
         if: failure()
         run: |
-          echo "::error::steps: java=${{ steps.java.outcome }} android=${{ steps.android.outcome }} gradle=${{ steps.gradle.outcome }} build=${{ steps.build.outcome }}"
+          echo "::error::steps: java=${{ steps.java.outcome }} sdk=${{ steps.sdk.outcome }} gradle=${{ steps.gradle.outcome }} build=${{ steps.build.outcome }}"
           if [ -f build.log ]; then
             grep -E "^e: |error:|What went wrong|Could not|FAILED|Caused by|not found|Unsupported" -A3 build.log | head -40 | while IFS= read -r l; do echo "::error::$l"; done
           fi
