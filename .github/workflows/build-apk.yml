@@ -11,21 +11,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - id: java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@v3
+      - id: android
+        uses: android-actions/setup-android@v3
 
-      - uses: gradle/actions/setup-gradle@v4
+      - id: gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
 
-      - name: Build debug APK
-        run: gradle assembleDebug --no-daemon
+      - id: build
+        name: Build debug APK
+        run: |
+          set -o pipefail
+          gradle assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
 
       - uses: actions/upload-artifact@v4
         with:
           name: BoltCallTracker-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      # Shows the reason for a failure on the run page, so it can be read without opening the logs.
+      - name: Show failure reason
+        if: failure()
+        run: |
+          echo "::error::steps: java=${{ steps.java.outcome }} android=${{ steps.android.outcome }} gradle=${{ steps.gradle.outcome }} build=${{ steps.build.outcome }}"
+          if [ -f build.log ]; then
+            grep -E "^e: |error:|What went wrong|Could not|FAILED|Caused by|not found|Unsupported" -A3 build.log | head -40 | while IFS= read -r l; do echo "::error::$l"; done
+          fi
